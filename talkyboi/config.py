@@ -1,5 +1,6 @@
 """Configuration constants for TalkyBoi."""
 
+import os
 from pynput import keyboard
 
 # Audio settings
@@ -11,7 +12,7 @@ DTYPE = "int16"  # 16-bit signed
 PTT_KEY = keyboard.Key.ctrl_r  # Right Ctrl
 
 # Gemini settings
-GEMINI_MODEL = "gemini-2.5-flash"
+GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
 
 # Transcription prompt
 TRANSCRIPTION_PROMPT = """Transcribe this audio and clean it up for readability.

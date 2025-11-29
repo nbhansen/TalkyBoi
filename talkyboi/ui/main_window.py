@@ -10,7 +10,7 @@ from PySide6.QtWidgets import (
     QLabel,
     QApplication,
 )
-from PySide6.QtCore import Qt, Slot, Signal, QEvent
+from PySide6.QtCore import Qt, Slot, Signal, QEvent, QTimer, QElapsedTimer
 from PySide6.QtGui import QFont
 
 
@@ -55,14 +55,23 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(central)
         layout = QVBoxLayout(central)
 
+        # Recording timer
+        self._recording_timer = QTimer(self)
+        self._recording_timer.timeout.connect(self._update_recording_time)
+        self._elapsed_timer = QElapsedTimer()
+
         # Status bar at top
         status_layout = QHBoxLayout()
         self.recording_indicator = QLabel("\u25cf")  # Filled circle
         self.recording_indicator.setStyleSheet("color: gray; font-size: 24px;")
         self.status_label = QLabel("Ready - Hold F5 or click button")
+        self.duration_label = QLabel("")
+        self.duration_label.setStyleSheet("color: #e74c3c; font-weight: bold; font-size: 14px;")
+        self.duration_label.setMinimumWidth(50)
         status_layout.addWidget(self.recording_indicator)
         status_layout.addWidget(self.status_label)
         status_layout.addStretch()
+        status_layout.addWidget(self.duration_label)
         layout.addLayout(status_layout)
 
         # Text area for transcription
@@ -82,9 +91,9 @@ class MainWindow(QMainWindow):
 
         # Button bar at bottom
         button_layout = QHBoxLayout()
-        self.clear_btn = QPushButton("Clear")
+        self.clear_btn = QPushButton("Clear (Ctrl+L)")
         self.clear_btn.clicked.connect(self.clear_text)
-        self.copy_btn = QPushButton("Copy All")
+        self.copy_btn = QPushButton("Copy All (Ctrl+Shift+C)")
         self.copy_btn.clicked.connect(self.copy_all)
         button_layout.addWidget(self.clear_btn)
         button_layout.addWidget(self.copy_btn)
@@ -102,6 +111,14 @@ class MainWindow(QMainWindow):
                     if not self._ptt_key_held:
                         self._ptt_key_held = True
                         self.ptt_pressed.emit()
+                    return True
+                # Ctrl+L to clear
+                if event.key() == Qt.Key_L and event.modifiers() == Qt.ControlModifier:
+                    self.clear_text()
+                    return True
+                # Ctrl+Shift+C to copy all
+                if event.key() == Qt.Key_C and event.modifiers() == (Qt.ControlModifier | Qt.ShiftModifier):
+                    self.copy_all()
                     return True
             elif event.type() == QEvent.KeyRelease and not event.isAutoRepeat():
                 if event.key() == Qt.Key_F5:
@@ -129,9 +146,20 @@ class MainWindow(QMainWindow):
         if is_recording:
             self.recording_indicator.setStyleSheet("color: red; font-size: 24px;")
             self.status_label.setText("Recording...")
+            self._elapsed_timer.start()
+            self.duration_label.setText("0.0s")
+            self._recording_timer.start(100)  # Update every 100ms
         else:
+            self._recording_timer.stop()
+            self.duration_label.setText("")
             self.recording_indicator.setStyleSheet("color: gray; font-size: 24px;")
             self.status_label.setText("Ready")
+
+    def _update_recording_time(self):
+        """Update the recording duration display."""
+        elapsed_ms = self._elapsed_timer.elapsed()
+        elapsed_sec = elapsed_ms / 1000.0
+        self.duration_label.setText(f"{elapsed_sec:.1f}s")
 
     def set_transcribing(self):
         """Update UI to show transcribing state."""

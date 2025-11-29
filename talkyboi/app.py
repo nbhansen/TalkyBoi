@@ -1,5 +1,6 @@
 """Application setup for TalkyBoi."""
 
+import logging
 import sys
 import os
 from PySide6.QtWidgets import QApplication, QMessageBox
@@ -9,6 +10,8 @@ from talkyboi.audio.audio_utils import get_audio_duration_ms
 from talkyboi.transcription.gemini_client import GeminiClient
 from talkyboi.transcription.transcriber import TranscriptionThread
 from talkyboi.config import MIN_RECORDING_DURATION_MS
+
+logger = logging.getLogger(__name__)
 
 
 class TalkyBoiApp:
@@ -52,25 +55,30 @@ class TalkyBoiApp:
 
     def _on_ptt_pressed(self):
         """Handle push-to-talk key pressed."""
+        logger.info("PTT pressed - starting recording")
         self.recorder.start_recording()
         self.window.set_recording(True)
 
     def _on_ptt_released(self):
         """Handle push-to-talk key released."""
+        logger.info("PTT released - stopping recording")
         self.recorder.stop_recording()
         self.window.set_recording(False)
 
     def _on_recording_finished(self, audio_data):
         """Handle recording finished - start transcription."""
         duration = get_audio_duration_ms(audio_data)
+        logger.info(f"Recording finished: {duration}ms, {len(audio_data)} samples")
 
         if duration < MIN_RECORDING_DURATION_MS:
+            logger.warning(f"Recording too short ({duration}ms < {MIN_RECORDING_DURATION_MS}ms)")
             self.window.show_error(f"Recording too short ({duration}ms)")
             return
 
         self.window.set_transcribing()
 
         # Create new thread for this transcription
+        logger.info("Starting transcription thread")
         self.transcription_thread = TranscriptionThread(self.gemini_client, audio_data)
         self.transcription_thread.finished.connect(self._on_transcription_done)
         self.transcription_thread.error.connect(self._on_transcription_error)
@@ -78,17 +86,22 @@ class TalkyBoiApp:
 
     def _on_transcription_done(self, text):
         """Handle transcription completed."""
+        logger.info(f"Transcription complete: {len(text)} chars")
         self.window.append_transcription(text)
 
     def _on_transcription_error(self, error):
         """Handle transcription error."""
+        logger.error(f"Transcription error: {error}")
         self.window.show_error(error)
 
     def run(self):
         """Run the application."""
+        logger.info("Starting TalkyBoi application")
         self.window.show()
         result = self.app.exec()
+        logger.info("Application shutting down")
         if self.transcription_thread and self.transcription_thread.isRunning():
+            logger.debug("Waiting for transcription thread to finish")
             self.transcription_thread.quit()
             self.transcription_thread.wait()
         return result
@@ -96,5 +109,6 @@ class TalkyBoiApp:
 
 def run():
     """Run the TalkyBoi application."""
+    logger.info("Initializing TalkyBoi")
     app = TalkyBoiApp()
     sys.exit(app.run())

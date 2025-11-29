@@ -1,9 +1,12 @@
 """Gemini API client for transcription."""
 
+import logging
 import os
 from google import genai
 from google.genai import types
 from talkyboi.config import GEMINI_MODEL, TRANSCRIPTION_PROMPT
+
+logger = logging.getLogger(__name__)
 
 
 class GeminiClient:
@@ -22,6 +25,7 @@ class GeminiClient:
             )
         self.client = genai.Client(api_key=api_key)
         self.model = GEMINI_MODEL
+        logger.info(f"Gemini client initialized with model: {self.model}")
 
     def transcribe(self, audio_bytes: bytes) -> str:
         """Transcribe audio and clean it up.
@@ -32,6 +36,7 @@ class GeminiClient:
         Returns:
             Cleaned transcription text
         """
+        logger.debug(f"Sending {len(audio_bytes)} bytes to Gemini API")
         response = self.client.models.generate_content(
             model=self.model,
             contents=[
@@ -39,4 +44,6 @@ class GeminiClient:
                 types.Part.from_bytes(data=audio_bytes, mime_type="audio/wav"),
             ],
         )
-        return response.text.strip()
+        result = response.text.strip()
+        logger.debug(f"Received transcription: {len(result)} chars")
+        return result
