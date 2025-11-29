@@ -1,7 +1,7 @@
 [Desktop Entry]
 Name=TalkyBoi
 Comment=Audio dictation with Gemini transcription
-Exec=/home/nbhansen/dev/TalkyBoi/talkyboi.sh
+Exec=talkyboi
 Icon=audio-input-microphone
 Terminal=false
 Type=Application
@@ -11,5 +11,5 @@ Actions=QuickRecord;
 
 [Desktop Action QuickRecord]
 Name=Quick Record (voice to clipboard)
-Exec=/home/nbhansen/dev/TalkyBoi/talkyboi.sh --quick
+Exec=talkyboi-quick
 Icon=audio-input-microphone

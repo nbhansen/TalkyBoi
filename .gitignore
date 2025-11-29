@@ -20,3 +20,6 @@ build/
 
 # OS
 .DS_Store
+
+# Cache/data directories
+chroma_data/
