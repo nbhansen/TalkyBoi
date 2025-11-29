@@ -4,7 +4,7 @@ import logging
 import numpy as np
 from PySide6.QtCore import QThread, Signal
 from talkyboi.audio.audio_utils import numpy_to_wav_bytes
-from talkyboi.transcription.gemini_client import GeminiClient
+from talkyboi.transcription.base import TranscriptionClient
 
 logger = logging.getLogger(__name__)
 
@@ -15,9 +15,9 @@ class TranscriptionThread(QThread):
     finished = Signal(str)
     error = Signal(str)
 
-    def __init__(self, gemini_client: GeminiClient, audio_data: np.ndarray):
+    def __init__(self, client: TranscriptionClient, audio_data: np.ndarray):
         super().__init__()
-        self.client = gemini_client
+        self.client = client
         self.audio_data = audio_data
 
     def run(self):

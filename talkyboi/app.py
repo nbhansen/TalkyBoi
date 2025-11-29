@@ -9,7 +9,7 @@ from talkyboi.ui.main_window import MainWindow
 from talkyboi.ui.quick_window import QuickRecordWindow
 from talkyboi.audio.recorder import AudioRecorder
 from talkyboi.audio.audio_utils import get_audio_duration_ms
-from talkyboi.transcription.gemini_client import GeminiClient
+from talkyboi.transcription import create_transcription_client
 from talkyboi.transcription.transcriber import TranscriptionThread
 from talkyboi.config import MIN_RECORDING_DURATION_MS
 
@@ -23,19 +23,16 @@ class TalkyBoiApp:
         self.app = QApplication(sys.argv)
         self.app.setApplicationName("TalkyBoi")
 
-        # Check for API key
-        if not os.environ.get("GEMINI_API_KEY"):
-            QMessageBox.critical(
-                None,
-                "Missing API Key",
-                "GEMINI_API_KEY not found.\n\nCreate a .env file with:\nGEMINI_API_KEY=your_key_here",
-            )
-            sys.exit(1)
-
         # Initialize components
         self.window = MainWindow()
         self.recorder = AudioRecorder()
-        self.gemini_client = GeminiClient()
+
+        # Create transcription client (validates its own API key)
+        try:
+            self.transcription_client = create_transcription_client()
+        except ValueError as e:
+            QMessageBox.critical(None, "Configuration Error", str(e))
+            sys.exit(1)
         self.transcription_thread = None
 
         # Connect signals
@@ -81,7 +78,7 @@ class TalkyBoiApp:
 
         # Create new thread for this transcription
         logger.info("Starting transcription thread")
-        self.transcription_thread = TranscriptionThread(self.gemini_client, audio_data)
+        self.transcription_thread = TranscriptionThread(self.transcription_client, audio_data)
         self.transcription_thread.finished.connect(self._on_transcription_done)
         self.transcription_thread.error.connect(self._on_transcription_error)
         self.transcription_thread.start()
@@ -116,19 +113,16 @@ class QuickRecordApp:
         self.app = QApplication(sys.argv)
         self.app.setApplicationName("TalkyBoi")
 
-        # Check for API key
-        if not os.environ.get("GEMINI_API_KEY"):
-            QMessageBox.critical(
-                None,
-                "Missing API Key",
-                "GEMINI_API_KEY not found.\n\nCreate a .env file with:\nGEMINI_API_KEY=your_key_here",
-            )
-            sys.exit(1)
-
         # Initialize components
         self.window = QuickRecordWindow()
         self.recorder = AudioRecorder()
-        self.gemini_client = GeminiClient()
+
+        # Create transcription client (validates its own API key)
+        try:
+            self.transcription_client = create_transcription_client()
+        except ValueError as e:
+            QMessageBox.critical(None, "Configuration Error", str(e))
+            sys.exit(1)
         self.transcription_thread = None
 
         # Connect signals
@@ -160,7 +154,7 @@ class QuickRecordApp:
 
         # Create transcription thread
         logger.info("Quick mode: starting transcription")
-        self.transcription_thread = TranscriptionThread(self.gemini_client, audio_data)
+        self.transcription_thread = TranscriptionThread(self.transcription_client, audio_data)
         self.transcription_thread.finished.connect(self._on_transcription_done)
         self.transcription_thread.error.connect(self._on_error)
         self.transcription_thread.start()

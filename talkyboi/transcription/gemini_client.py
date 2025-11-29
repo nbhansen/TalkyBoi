@@ -5,11 +5,12 @@ import os
 from google import genai
 from google.genai import types
 from talkyboi.config import GEMINI_MODEL, TRANSCRIPTION_PROMPT
+from talkyboi.transcription.base import TranscriptionClient
 
 logger = logging.getLogger(__name__)
 
 
-class GeminiClient:
+class GeminiClient(TranscriptionClient):
     """Client for transcribing audio using Gemini API."""
 
     def __init__(self, api_key: str | None = None):

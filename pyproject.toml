@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "talkyboi"
 version = "0.1.0"
-description = "Audio dictation with Gemini transcription"
+description = "Audio dictation with multi-provider transcription (Gemini, OpenAI, Whisper)"
 readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.10"
@@ -32,6 +32,11 @@ dependencies = [
     "pynput>=1.7.6",
     "python-dotenv>=1.0.0",
 ]
+
+[project.optional-dependencies]
+openai = ["openai>=1.0.0"]
+whisper = ["faster-whisper>=1.0.0"]
+all = ["openai>=1.0.0", "faster-whisper>=1.0.0"]
 
 [project.scripts]
 talkyboi = "talkyboi.app:run"

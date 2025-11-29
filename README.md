@@ -1,23 +1,29 @@
 # TalkyBoi
 
-Audio dictation app that transcribes speech using Gemini API and cleans up filler words.
+Audio dictation app with multi-provider transcription support: Gemini, OpenAI Whisper, or local Whisper.
 
 ## Installation
 
-### Option 1: pip install (recommended)
-
 ```bash
-git clone https://github.com/yourusername/TalkyBoi.git
+git clone https://github.com/nbhansen/TalkyBoi.git
 cd TalkyBoi
 pip install .
 ```
 
-This installs `talkyboi` and `talkyboi-quick` commands.
+This installs `talkyboi` and `talkyboi-quick` commands with Gemini as the default provider.
 
-### Option 2: Development setup
+### Optional providers
 
 ```bash
-git clone https://github.com/yourusername/TalkyBoi.git
+pip install .[openai]     # Add OpenAI Whisper API support
+pip install .[whisper]    # Add local Whisper support (no API needed)
+pip install .[all]        # Install all providers
+```
+
+### Development setup
+
+```bash
+git clone https://github.com/nbhansen/TalkyBoi.git
 cd TalkyBoi
 python -m venv venv
 source venv/bin/activate
@@ -26,15 +32,33 @@ pip install -r requirements.txt
 
 ## Configuration
 
-Create `.env` in the project directory with your Gemini API key:
+Create `.env` in the project directory:
+
+### Gemini (default)
+
 ```
+TRANSCRIPTION_PROVIDER=gemini
 GEMINI_API_KEY=your_key_here
+GEMINI_MODEL=gemini-2.5-flash  # optional
 ```
 
-Optionally specify a different Gemini model:
+Gemini cleans up filler words (um, uh, like) automatically.
+
+### OpenAI Whisper API
+
 ```
-GEMINI_MODEL=gemini-2.5-flash
+TRANSCRIPTION_PROVIDER=openai
+OPENAI_API_KEY=your_key_here
 ```
+
+### Local Whisper
+
+```
+TRANSCRIPTION_PROVIDER=whisper
+WHISPER_MODEL=base  # optional: tiny, base, small, medium, large-v2, large-v3
+```
+
+No API key required. First run downloads the model (~150MB for base).
 
 ## Usage
 
@@ -45,7 +69,7 @@ talkyboi              # if installed via pip
 python main.py        # if running from source
 ```
 
-- Hold **F5** or click the button to record
+- Hold **Right Ctrl** or click the button to record
 - Release to transcribe
 - Text accumulates in the window
 - **Ctrl+L** to clear, **Ctrl+Shift+C** to copy all
@@ -63,8 +87,6 @@ A minimal floating window appears:
 3. Press **Escape** or click **Stop**
 4. Text is transcribed and copied to clipboard
 5. Window closes automatically
-
-Perfect for quickly capturing voice notes!
 
 ## Global Shortcut Setup (GNOME/Wayland)
 

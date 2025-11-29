@@ -11,6 +11,9 @@ DTYPE = "int16"  # 16-bit signed
 # Push-to-talk key
 PTT_KEY = keyboard.Key.ctrl_r  # Right Ctrl
 
+# Transcription provider: gemini, openai, or whisper
+TRANSCRIPTION_PROVIDER = os.environ.get("TRANSCRIPTION_PROVIDER", "gemini")
+
 # Gemini settings
 GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
 
