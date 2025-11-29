@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """TalkyBoi - Audio dictation with Gemini transcription."""
 
+import argparse
 import logging
 import sys
 from dotenv import load_dotenv
@@ -15,7 +16,20 @@ logging.basicConfig(
 
 load_dotenv()
 
-from talkyboi.app import run
+from talkyboi.app import run, run_quick
 
 if __name__ == "__main__":
-    run()
+    parser = argparse.ArgumentParser(
+        description="TalkyBoi - Audio dictation with Gemini transcription"
+    )
+    parser.add_argument(
+        "--quick", "-q",
+        action="store_true",
+        help="Quick record mode: record, transcribe, copy to clipboard, exit"
+    )
+    args = parser.parse_args()
+
+    if args.quick:
+        run_quick()
+    else:
+        run()
